@@ -29,6 +29,7 @@ def load_images():
 
 class GameState:
     def __init__(self):
+        # ... your existing board, white_to_move, and move_log
         self.board = [
             ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
             ["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"],
@@ -41,6 +42,7 @@ class GameState:
         ]
         self.white_to_move = True
         self.move_log = []
+        self.decryption_stream = "" # NEW: A place to store our binary as we go
 
     def make_move(self, move):
         self.board[move.start_row][move.start_col] = "--"
@@ -48,6 +50,9 @@ class GameState:
         self.move_log.append(move)
         self.white_to_move = not self.white_to_move
 
+        # NEW: Store the binary of the destination square
+        is_white_square = ((move.end_row + move.end_col) % 2) == 0
+        self.decryption_stream += '1' if is_white_square else '0'
     def get_all_legal_moves(self):
         moves = []
         for r in range(DIMENSION):

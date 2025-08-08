@@ -1,4 +1,4 @@
-# In your main.py file, replace all the existing code
+# In your main.py file, replace the entire main() function
 
 import pygame
 from chess_engine import draw_game_state, WIDTH, HEIGHT, GameState, load_images, SQ_SIZE, Move, DIMENSION
@@ -16,36 +16,27 @@ def main():
     
     gs = GameState()
     clock = pygame.time.Clock()
-    MAX_FPS = 1 # We'll slow the game down so you can see the bots move
+    MAX_FPS = 60
     
     running = True
     valid_moves = gs.get_all_legal_moves()
     move_made = False
 
-    # --- NEW CODE STARTS HERE ---
-    
-    # 1. Get the binary stream from our input file
     binary_stream = text_to_binary(INPUT_FILE)
     if binary_stream is None:
-        running = False # Exit if the file wasn't found
+        running = False
     
     bit_index = 0
+    final_board_binary = ""
     
-    # --- NEW CODE ENDS HERE ---
-
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
         
-        # --- NEW CODE STARTS HERE ---
-        # 2. This is the bot's move logic
         if bit_index < len(binary_stream):
             bit = binary_stream[bit_index]
             
-            # Simple bot logic:
-            # - Move the first available pawn if the bit is '1'
-            # - Move the first available rook if the bit is '0'
             move = None
             if bit == '1':
                 for m in valid_moves:
@@ -58,6 +49,11 @@ def main():
                         move = m
                         break
             
+            # NEW: Fallback logic. If no specific piece move was found,
+            # find any other legal move to keep the game going.
+            if move is None and valid_moves:
+                move = valid_moves[0] # Take the first legal move available
+
             if move is not None:
                 gs.make_move(move)
                 move_made = True
@@ -66,10 +62,8 @@ def main():
             
         else:
             print("Encryption complete! No more binary data to process.")
-            running = False # Stop the game when all data is processed
-        
-        # --- NEW CODE ENDS HERE ---
-
+            running = False
+            
         if move_made:
             valid_moves = gs.get_all_legal_moves()
             move_made = False
@@ -77,7 +71,33 @@ def main():
         draw_game_state(screen, gs)
         pygame.display.flip()
         
-        clock.tick(MAX_FPS) 
+
+    # --- NEW DECRYPTION LOGIC STARTS HERE ---
+    
+    print("\n--- DECRYPTION PROCESS ---")
+    decryption_binary_stream = ""
+    for r in range(DIMENSION):
+        for c in range(DIMENSION):
+            # Let's define white squares as '1' and black squares as '0'
+            is_white_square = ((r + c) % 2) == 0
+            if is_white_square:
+                if gs.board[r][c] != "--":
+                    decryption_binary_stream += '1'
+            else:
+                if gs.board[r][c] != "--":
+                    decryption_binary_stream += '0'
+    
+    # Pad the binary stream to be a multiple of 8
+    while len(decryption_binary_stream) % 8 != 0:
+        decryption_binary_stream += '0'
+    
+        print("\n--- DECRYPTION PROCESS ---")
+    decryption_binary_stream = gs.decryption_stream
+    
+    print("Reconstructed Binary Stream:", decryption_binary_stream)
+    
+    original_text = binary_to_text(decryption_binary_stream)
+    print("Original Text:", original_text)
 
     pygame.quit()
 
