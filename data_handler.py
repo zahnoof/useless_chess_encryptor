@@ -1,19 +1,24 @@
 # In your data_handler.py file
 
-def text_to_binary(filename):
+def text_to_binary(input_data, is_file=True):
     """
-    Reads a text file and returns its contents as a single binary string.
+    Reads a text file or a string and returns its contents as a single binary string.
     """
     binary_stream = ""
+    text = ""
     try:
-        with open(filename, 'r') as file:
-            text = file.read()
-            for char in text:
-                ascii_val = ord(char)
-                binary_val = bin(ascii_val)[2:].zfill(8)
-                binary_stream += binary_val
+        if is_file:
+            with open(input_data, 'r') as file:
+                text = file.read()
+        else:
+            text = input_data
+            
+        for char in text:
+            ascii_val = ord(char)
+            binary_val = bin(ascii_val)[2:].zfill(8)
+            binary_stream += binary_val
     except FileNotFoundError:
-        print(f"Error: The file '{filename}' was not found.")
+        print(f"Error: The file '{input_data}' was not found.")
         return None
     return binary_stream
 
