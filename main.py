@@ -38,21 +38,20 @@ def main():
             bit = binary_stream[bit_index]
             
             move = None
-            if bit == '1':
-                for m in valid_moves:
-                    if gs.board[m.start_row][m.start_col][1] == 'P':
-                        move = m
-                        break
-            elif bit == '0':
-                for m in valid_moves:
-                    if gs.board[m.start_row][m.start_col][1] == 'R':
-                        move = m
-                        break
+            found_move = False
             
-            # NEW: Fallback logic. If no specific piece move was found,
-            # find any other legal move to keep the game going.
-            if move is None and valid_moves:
-                move = valid_moves[0] # Take the first legal move available
+            # --- NEW BOT LOGIC ---
+            for m in valid_moves:
+                is_white_square = ((m.end_row + m.end_col) % 2) == 0
+                if (bit == '1' and is_white_square) or (bit == '0' and not is_white_square):
+                    move = m
+                    found_move = True
+                    break
+            
+            # If no move to the correct color was found, take any other legal move
+            if not found_move and valid_moves:
+                move = valid_moves[0]
+            # --- END NEW BOT LOGIC ---
 
             if move is not None:
                 gs.make_move(move)
