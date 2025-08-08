@@ -16,7 +16,7 @@ def main():
     
     gs = GameState()
     clock = pygame.time.Clock()
-    MAX_FPS = 1
+    MAX_FPS = 5
     
     running = True
     valid_moves = gs.get_all_legal_moves()
@@ -27,8 +27,10 @@ def main():
         running = False
     
     bit_index = 0
-    final_board_binary = ""
     
+    pygame.font.init()
+    font = pygame.font.SysFont('Arial', 24)
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -40,7 +42,6 @@ def main():
             move = None
             found_move = False
             
-            # --- NEW BOT LOGIC ---
             for m in valid_moves:
                 is_white_square = ((m.end_row + m.end_col) % 2) == 0
                 if (bit == '1' and is_white_square) or (bit == '0' and not is_white_square):
@@ -48,10 +49,8 @@ def main():
                     found_move = True
                     break
             
-            # If no move to the correct color was found, take any other legal move
             if not found_move and valid_moves:
                 move = valid_moves[0]
-            # --- END NEW BOT LOGIC ---
 
             if move is not None:
                 gs.make_move(move)
@@ -67,32 +66,26 @@ def main():
             valid_moves = gs.get_all_legal_moves()
             move_made = False
             
+        # --- DRAWING CODE STARTS HERE ---
+        screen.fill(pygame.Color("white")) # Clear the screen
         draw_game_state(screen, gs)
+
+        # Draw the side panel
+        pygame.draw.rect(screen, (240, 240, 240), pygame.Rect(512, 0, 256, 512))
+
+        # Render and draw the moves remaining counter in the side panel
+        moves_remaining = len(binary_stream) - bit_index
+        moves_remaining_text = font.render(f"Moves Remaining: {moves_remaining}", True, (0, 0, 0))
+        screen.blit(moves_remaining_text, (522, 10))
+        # --- DRAWING CODE ENDS HERE ---
+
         pygame.display.flip()
         
+        clock.tick(MAX_FPS) 
 
-    # --- NEW DECRYPTION LOGIC STARTS HERE ---
-    
-    print("\n--- DECRYPTION PROCESS ---")
-    decryption_binary_stream = ""
-    for r in range(DIMENSION):
-        for c in range(DIMENSION):
-            # Let's define white squares as '1' and black squares as '0'
-            is_white_square = ((r + c) % 2) == 0
-            if is_white_square:
-                if gs.board[r][c] != "--":
-                    decryption_binary_stream += '1'
-            else:
-                if gs.board[r][c] != "--":
-                    decryption_binary_stream += '0'
-    
-    # Pad the binary stream to be a multiple of 8
-    while len(decryption_binary_stream) % 8 != 0:
-        decryption_binary_stream += '0'
-    
+    # Decryption Logic
     print("\n--- DECRYPTION PROCESS ---")
     decryption_binary_stream = gs.decryption_stream
-    
     print("Reconstructed Binary Stream:", decryption_binary_stream)
     
     original_text = binary_to_text(decryption_binary_stream)

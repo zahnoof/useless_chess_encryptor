@@ -3,9 +3,20 @@
 import pygame
 
 # Board dimensions and constants
-WIDTH = HEIGHT = 512
+WIDTH = 768 # Increased from 512 to make space for the side panel
+HEIGHT = 512
 DIMENSION = 8
 SQ_SIZE = HEIGHT // DIMENSION
+
+def draw_board(screen):
+    """
+    Draws the squares of the chessboard on the screen.
+    """
+    colors = [LIGHT_SQUARE, DARK_SQUARE]
+    for row in range(DIMENSION):
+        for col in range(DIMENSION):
+            color = colors[((row + col) % 2)]
+            pygame.draw.rect(screen, color, pygame.Rect(col * SQ_SIZE, row * SQ_SIZE, SQ_SIZE, SQ_SIZE))
 
 # Colors for the chessboard
 LIGHT_SQUARE = (238, 238, 210)
