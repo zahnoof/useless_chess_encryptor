@@ -1,6 +1,8 @@
 # In your chess_engine.py file, replace the entire get_all_legal_moves and the new get_piece_moves function
 
 import pygame
+import json
+import os
 
 # Board dimensions and constants
 WIDTH = 768
@@ -211,7 +213,7 @@ class GameState:
                 end_piece = self.board[end_row][end_col]
                 if end_piece[0] != ally_color:
                     moves.append(Move((r, c), (end_row, end_col), self.board))
-    
+
 class Move:
     def __init__(self, start_sq, end_sq, board):
         self.start_row = start_sq[0]

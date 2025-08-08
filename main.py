@@ -1,11 +1,15 @@
 # In your main.py file, replace all the existing code
 
 import pygame
+import json
+import os
+import time
 from chess_engine import draw_game_state, WIDTH, HEIGHT, GameState, load_images, SQ_SIZE, Move, DIMENSION
 from data_handler import text_to_binary, binary_to_text
 
 # Define the location of your input file
 INPUT_FILE = "input_data.txt"
+HISTORY_FILE = "game_history.json"
 
 def main():
     pygame.init()
@@ -27,24 +31,35 @@ def main():
     final_decryption_stream = ""
     
     pygame.font.init()
-    font_small = pygame.font.SysFont('Arial', 24)
-    font_large = pygame.font.SysFont('Arial', 48)
+    font_small = pygame.font.SysFont('Arial', 20)
+    font_large = pygame.font.SysFont('Arial', 36)
 
-    current_state = "START_SCREEN"
-    input_box = pygame.Rect(0, 0, 230, 32)
+    input_box = pygame.Rect(WIDTH // 2 - 115, 200, 230, 32)
     input_text = ""
     is_active = True
+    has_typed = False
     color_passive = pygame.Color('lightskyblue3')
     color_active = pygame.Color('dodgerblue2')
     color = color_active
-    start_button = pygame.Rect(0, 0, 100, 40)
+    start_button = pygame.Rect(WIDTH // 2 - 50, 250, 100, 40)
+    history_button_start = pygame.Rect(WIDTH // 2 - 50, 300, 100, 40)
+    history_button_game = pygame.Rect(582, 200, 100, 40)
+    back_button = pygame.Rect(582, 250, 100, 40)
     
+    game_state = "START_SCREEN"
+    game_history = []
+    
+    def get_centered_rect(text, font, button_rect):
+        text_surface = font.render(text, True, (255, 255, 255))
+        text_rect = text_surface.get_rect(center=button_rect.center)
+        return text_surface, text_rect
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
-            if current_state == "START_SCREEN":
+            if game_state == "START_SCREEN":
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if input_box.collidepoint(event.pos):
                         is_active = not is_active
@@ -59,27 +74,49 @@ def main():
                             gs = GameState()
                             final_decryption_stream = ""
                             valid_moves = gs.get_all_legal_moves()
-                            current_state = "GAME_RUNNING"
+                            game_state = "GAME_RUNNING"
                             print("New encryption started.")
                         else:
                             print("Input text is empty or invalid. Please try again.")
 
                 if event.type == pygame.KEYDOWN:
                     if is_active:
-                        if event.key == pygame.K_RETURN:
-                            pass
-                        elif event.key == pygame.K_BACKSPACE:
+                        if not has_typed:
+                            input_text = ""
+                            has_typed = True
+
+                        if event.key == pygame.K_BACKSPACE:
                             input_text = input_text[:-1]
                         else:
                             input_text += event.unicode
             
-            elif current_state == "GAME_RUNNING":
-                pass
+            elif game_state == "GAME_RUNNING":
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if history_button_game.collidepoint(event.pos):
+                        game_data = {
+                            "text": input_text,
+                            "binary": final_decryption_stream,
+                            "moves": [move.get_chess_notation() for move in gs.move_log],
+                            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+                        }
+                        if os.path.exists(HISTORY_FILE) and os.path.getsize(HISTORY_FILE) > 0:
+                            with open(HISTORY_FILE, "r") as f:
+                                game_history = json.load(f)
+                        else:
+                            game_history = []
+                        game_history.append(game_data)
+                        with open(HISTORY_FILE, "w") as f:
+                            json.dump(game_history, f, indent=4)
+                        game_state = "HISTORY_SCREEN"
 
-        if current_state == "START_SCREEN":
-            # --- START SCREEN DRAWING LOGIC ---
-            screen.fill(pygame.Color(50, 50, 50))
+            elif game_state == "HISTORY_SCREEN":
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if back_button.collidepoint(event.pos):
+                        game_state = "GAME_RUNNING"
+        
+        screen.fill(pygame.Color(50, 50, 50))
 
+        if game_state == "START_SCREEN":
             title_text = font_large.render("Useless Chess Encryptor", True, (255, 255, 255))
             title_rect = title_text.get_rect(center=(WIDTH // 2, 100))
             screen.blit(title_text, title_rect)
@@ -92,13 +129,15 @@ def main():
 
             start_button.center = (WIDTH // 2, 250)
             pygame.draw.rect(screen, (0, 200, 0), start_button)
-            start_text = font_small.render("Start", True, (255, 255, 255))
-            start_text_rect = start_text.get_rect(center=start_button.center)
-            screen.blit(start_text, start_text_rect)
+            start_text_surface, start_text_rect = get_centered_rect("Start", font_small, start_button)
+            screen.blit(start_text_surface, start_text_rect)
 
-            pygame.display.flip()
+            history_button_start = pygame.Rect(WIDTH // 2 - 50, 300, 100, 40)
+            pygame.draw.rect(screen, (0, 0, 200), history_button_start)
+            history_text_surface, history_text_rect = get_centered_rect("History", font_small, history_button_start)
+            screen.blit(history_text_surface, history_text_rect)
 
-        elif current_state == "GAME_RUNNING":
+        elif game_state == "GAME_RUNNING":
             if gs.game_over:
                 final_decryption_stream += gs.decryption_stream
                 gs = GameState()
@@ -124,12 +163,12 @@ def main():
                 bit_index += 1
             else:
                 print("Encryption complete! No more binary data to process.")
-                running = False
+                game_state = "START_SCREEN"
+
             if move_made:
                 valid_moves = gs.get_all_legal_moves()
                 move_made = False
-            
-            screen.fill(pygame.Color("white"))
+
             draw_game_state(screen, gs)
             
             pygame.draw.rect(screen, (240, 240, 240), pygame.Rect(512, 0, 256, 512))
@@ -138,9 +177,35 @@ def main():
             moves_remaining_text = font_small.render(f"Moves Remaining: {moves_remaining}", True, (0, 0, 0))
             screen.blit(moves_remaining_text, (522, 10))
 
-            pygame.display.flip()
+            current_bit_text = font_small.render(f"Current Bit: {binary_stream[bit_index-1] if bit_index > 0 else 'N/A'}", True, (0, 0, 0))
+            screen.blit(current_bit_text, (522, 40))
+
+            history_button_game = pygame.Rect(582, 200, 100, 40)
+            pygame.draw.rect(screen, (0, 0, 200), history_button_game)
+            history_text_surface, history_text_rect = get_centered_rect("History", font_small, history_button_game)
+            screen.blit(history_text_surface, history_text_rect)
             
-            clock.tick(MAX_FPS)
+        elif game_state == "HISTORY_SCREEN":
+            game_history_list = []
+            if os.path.exists(HISTORY_FILE) and os.path.getsize(HISTORY_FILE) > 0:
+                with open(HISTORY_FILE, "r") as f:
+                    game_history_list = json.load(f)
+            
+            back_button = pygame.Rect(WIDTH // 2 - 50, 450, 100, 40)
+            pygame.draw.rect(screen, (200, 0, 0), back_button)
+            back_text_surface, back_text_rect = get_centered_rect("Back", font_small, back_button)
+            screen.blit(back_text_surface, back_text_rect)
+            
+            y_pos = 100
+            for i, game_data in enumerate(game_history_list):
+                text_to_display = f"Game at {game_data['timestamp']}"
+                text_surface = font_small.render(text_to_display, True, (255, 255, 255))
+                screen.blit(text_surface, (50, y_pos))
+                y_pos += 30
+        
+        pygame.display.flip()
+        
+        clock.tick(MAX_FPS)
 
     print("\n--- DECRYPTION PROCESS ---")
     decryption_binary_stream = final_decryption_stream
