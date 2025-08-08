@@ -16,7 +16,7 @@ def main():
     
     gs = GameState()
     clock = pygame.time.Clock()
-    MAX_FPS = 60
+    MAX_FPS = 1
     
     running = True
     valid_moves = gs.get_all_legal_moves()
