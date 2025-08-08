@@ -91,7 +91,7 @@ def main():
     while len(decryption_binary_stream) % 8 != 0:
         decryption_binary_stream += '0'
     
-        print("\n--- DECRYPTION PROCESS ---")
+    print("\n--- DECRYPTION PROCESS ---")
     decryption_binary_stream = gs.decryption_stream
     
     print("Reconstructed Binary Stream:", decryption_binary_stream)
