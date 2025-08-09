@@ -49,18 +49,4 @@ The core idea is to demonstrate a "useless" but fully functional encryption proc
 
 This project is a Python application that uses a custom-built chess game to "encrypt" text into a series of chess moves. The application then "decrypts" the game by reading the moves made on the board and converting them back into the original text.
 
-## How to Run the Project
-
-Follow these steps to get the project up and running on your local machine.
-
-### Prerequisites
-
-* Python 3.10 or higher
-* `pip` (Python package installer)
-
-### Step 1: Clone the Repository
-
-First, you need to get a copy of the project's code. Open your terminal or command prompt and run the following command, replacing `[your_repository_url]` with the actual URL of your GitHub repository.
-
-```bash
 
