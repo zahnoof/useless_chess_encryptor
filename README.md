@@ -1,5 +1,3 @@
-# useless_chess_encryptor
-A unique app that "encrypts" text by translating it into a series of chess moves. Bots play a game based on the binary data, and the final moves are decrypted back to the original text. A fun Python/Pygame project demonstrating clever data manipulation!
 # The Useless Chess Encryptor
 
 This project is a unique and creative take on data encryption. It's a Python-based application that uses a custom-built chess game to "encrypt" text into a series of chess moves. The application then "decrypts" the game by reading the moves made on the board and converting them back into the original text.
