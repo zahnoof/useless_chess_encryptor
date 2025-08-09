@@ -44,4 +44,4 @@ The core idea is to demonstrate a "useless" but fully functional encryption proc
 * **Pygame:** For building the graphical user interface and game engine.
 * **JSON:** For storing and retrieving game history.
 
-Feel free to explore the code and see how this "useless" encryption process works!
+
